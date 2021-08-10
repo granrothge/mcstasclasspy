@@ -66,7 +66,7 @@ class Data2D(DataMcCode):
 
         """
         xylimits = self.xylimits
-        xylimits_idx = np.zeros(4, dtype=np.int)
+        xylimits_idx = np.zeros(4, dtype=int)
         xylimitsidx_dict = {'x': [2, 3], 'y': [0, 1]}
         xyvar_dict = {'x': self.xvar, 'y': self.yvar}
         xylabel_dict = {'x': self.xlabel, 'y': self.ylabel}
