@@ -4,6 +4,7 @@
 functionality for loading mccode data into suitable data types,
 and assembling it in a plot-friendly way.
 '''
+from os import fchdir
 import re
 from decimal import Decimal
 import numpy as np
@@ -178,9 +179,9 @@ def _parse_2D_monitor(text):
 def load_ascii_monitor(monfile):
     f = monfile
     if not f == 'No file':
-        text = open(f).read()
+        with open(f)as fh:
+            text = fh.read()
         # determine 1D / 2D data
-
         m = re.search('\# type: (\w+)', text)
         typ = m.group(1)
         if typ == 'array_0d':
@@ -193,10 +194,9 @@ def load_ascii_monitor(monfile):
         else:
             print('load_monitor: unknown data format %s' % typ)
             data = None
-        data.filepath = f
-        return data
+        data.filepath = f  
     else:
-        return Data0D()
+        data = Data0D()    
     return data
 
 
