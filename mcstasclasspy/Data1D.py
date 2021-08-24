@@ -63,6 +63,40 @@ class Data1D(DataMcCode):
             outdat.y_err_vals = self.y_err_vals * other
         return outdat
 
+    def __add__(self,other):
+        """
+        add 2 1d instances together or add a constant
+        """
+        if not isinstance(other, (Data1D, float, int)):
+            raise RuntimeError("other must be a 1D instance or a constant")
+        outdat = Data1D()
+        outdat.xvals = self.xvals
+        outdat.xlabel = self.xlabel
+        if isinstance(other,Data1D):
+            outdat.yvals = self.yvals + other.yvals
+            outdat.y_err_vals = np.sqrt(self.y_err_vals**2+other.y_err_vals**2)
+        else:
+            outdat.yvals = self.yvals + other
+            outdat.y_err_vals =self.y_err_vals 
+        return outdat
+    
+    def __sub__(self,other):
+        """
+       subtract 2 1d instances subtract a constant
+        """
+        if not isinstance(other, (Data1D, float, int)):
+            raise RuntimeError("other must be a 1D instance or a constant")
+        outdat = Data1D()
+        outdat.xvals = self.xvals
+        outdat.xlabel = self.xlabel
+        if isinstance(other,Data1D):
+            outdat.yvals = self.yvals - other.yvals
+            outdat.y_err_vals = np.sqrt(self.y_err_vals**2+other.y_err_vals**2)
+        else:
+            outdat.yvals = self.yvals - other
+            outdat.y_err_vals =self.y_err_vals 
+        return outdat
+
     def clone(self):
         data = Data1D()
 
