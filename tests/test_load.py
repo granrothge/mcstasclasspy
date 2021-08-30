@@ -15,11 +15,17 @@ class TestCase(unittest.TestCase):
         assert isinstance(data,mcm.Data1D)
         assert data.component=='Source_Spectrum'
         assert data.title=='Wavelength monitor'
+        assert data.xlabel=='Wavelength [AA]'
+        assert data.ylabel=='Intensity'
+        assert data.filename=='Source_spectrum.dat'
     def test_load2D(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
         assert isinstance(data,mcm.Data2D)
         assert data.component=='Source_Image'
         assert data.title=='PSD monitor'
+        assert data.xlabel=='X position [cm]'
+        assert data.ylabel=='Y position [cm]'
+        assert data.filename =='Source_image.dat' 
 if __name__ == "__main__":
     interactive = True
     unittest.main()

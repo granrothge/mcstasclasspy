@@ -23,6 +23,12 @@ freetext_pat = '.+'
 
 def _parse_monitor_common(data,text):
     try:
+        '''# filename: Edet.dat'''
+        m = re.search(r'# filename: ([\-\+\w\.\,]+)\n', text)
+        if m:
+            data.filename = m.group(1)
+        else:
+            data.filename = ''
         '''# component: Ldetector'''
         m = re.search(r'# component: ([\w\.]+)\n', text)
         if m:
@@ -30,10 +36,23 @@ def _parse_monitor_common(data,text):
         else:
             data.component = "(no comp name)"
         '''# title: Wavelength monitor'''
-        m = re.search(r'\# title: '+'({})'.format(freetext_pat)+r'\n', text)
+        m = re.search(r'# title: '+'({})'.format(freetext_pat)+r'\n', text)
         data.title = m.group(1)
     except Exception as e:
         print('Common Data load error.')
+        raise e
+    return data
+
+def _parse_monitor_xylabel(data,text):
+    try:
+        '''# xlabel: Wavelength [AA]'''
+        m = re.search(r'# xlabel: '+'({})'.format(freetext_pat)+r'\n', text)
+        data.xlabel = m.group(1)
+        '''# ylabel: Intensity'''
+        m = re.search(r'# ylabel: '+'({})'.format(freetext_pat)+r'\n', text)
+        data.ylabel = m.group(1)
+    except Exception as e:
+        print('xylabel Data load error.')
         raise e
     return data 
 
@@ -84,18 +103,8 @@ def _parse_1D_monitor(text):
 
     try:
         # load essential header data
-        data = _parse_monitor_common(data,text)
-        
-        '''# filename: Edet.dat'''
-        m = re.search('\# filename: ([\-\+\w\.\,]+)\n', text)
-        data.filename = m.group(1)
-        '''# xlabel: Wavelength [AA]'''
-        m = re.search('\# xlabel: (%s)\n' % freetext_pat, text)
-        data.xlabel = m.group(1)
-        '''# ylabel: Intensity'''
-        m = re.search('\# ylabel: (%s)\n' % freetext_pat, text)
-        data.ylabel = m.group(1)
-
+        data = _parse_monitor_common(data,text)      
+        data = _parse_monitor_xylabel(data,text)
         '''# xvar: L'''
         m = re.search('\# xvar: ([\w]+)\n', text)
         data.xvar = m.group(1)
@@ -148,21 +157,7 @@ def _parse_2D_monitor(text):
     try:
         # load essential header data
         data = _parse_monitor_common(data,text)
-        #'''# component: detector'''
-        # m = re.search('\# component: ([\w]+)\n', text)
-        # if m:
-        #     data.component = m.group(1)
-        # else:
-        #     data.component = "(no comp name)"
-        '''# filename: PSD.dat'''
-        m = re.search('\# filename: ([\-\+\w\.\,]+)\n', text)
-        data.filename = m.group(1)
-        '''# xlabel: X position [cm]'''
-        m = re.search('\# xlabel: (%s)\n' % freetext_pat, text)
-        data.xlabel = m.group(1)
-        '''# ylabel: Y position [cm]'''
-        m = re.search('\# ylabel: (%s)\n' % freetext_pat, text)
-        data.ylabel = m.group(1)
+        data = _parse_monitor_xylabel(data,text)
 
         '''# xvar: X'''
         m = re.search('\# xvar: (%s)\n' % freetext_pat, text)
