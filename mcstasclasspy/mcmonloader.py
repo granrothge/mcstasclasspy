@@ -21,42 +21,96 @@ Utility funcitons for loading and parsing mccode output files
 '''
 freetext_pat = '.+'
 
+def _parse_monitor_common(data,text):
+    try:
+        '''# filename: Edet.dat'''
+        m = re.search(r'# filename: ([\-\+\w\.\,]+)\n', text)
+        if m:
+            data.filename = m.group(1)
+        else:
+            data.filename = ''
+        '''# component: Ldetector'''
+        m = re.search(r'# component: ([\w\.]+)\n', text)
+        if m:
+            data.component = m.group(1)
+        else:
+            data.component = "(no comp name)"
+        '''# title: Wavelength monitor'''
+        m = re.search(r'# title: '+'({})'.format(freetext_pat)+r'\n', text)
+        data.title = m.group(1)
+        '''# values: 6.72365e-17 4.07766e-18 4750'''
+        m = re.search(r'# values: ([\d\-\+\.e]+) ([\d\-\+\.e]+) ([\d\-\+\.e]+)\n', text)
+        data.values = (Decimal(m.group(1)), Decimal(m.group(2)), float(m.group(3)))
+    except Exception as e:
+        print('Common Data load error.')
+        raise e
+    return data
+
+def _parse_monitor_xylabel(data,text):
+    try:
+        '''# xlabel: Wavelength [AA]'''
+        m = re.search(r'# xlabel: '+'({})'.format(freetext_pat)+r'\n', text)
+        data.xlabel = m.group(1)
+        '''# ylabel: Intensity'''
+        m = re.search(r'# ylabel: '+'({})'.format(freetext_pat)+r'\n', text)
+        data.ylabel = m.group(1)
+    except Exception as e:
+        print('xylabel Data load error.')
+        raise e
+    return data 
+
+def _parse_0D_monitor(text):
+    ''' populates data fields of new Data1D object using the text from a mccode data file '''
+    data = Data0D()
+    # load essential header data
+    data = _parse_monitor_common(data,text)
+    try:
+        
+        '''# statistics: X0=5.99569; dX=0.0266368;'''
+        # m = re.search('\# statistics: X0=([\d\.\-\+e]+); dX=([\d\.\-\+e]+);\n', text)
+        # data.statistics = 'X0=%.2E; dX=%.2E;' % (Decimal(m.group(1)), Decimal(m.group(2)))
+
+        # load the actual data
+        lines = text.splitlines()
+        xvals = []
+        yvals = []
+        y_err_vals = []
+        Nvals = []
+        for l in lines:
+            if '#' in l:
+                continue
+            vals = l.split()
+            yvals.append(float(vals[0]))
+            y_err_vals.append(float(vals[1]))
+            Nvals.append(float(vals[2]))
+        data.yvals = np.array(yvals)
+        data.y_err_vals = np.array(y_err_vals)
+        data.Nvals = Nvals
+
+    except Exception as e:
+        print('Data0D load error.')
+        raise e
+
+    return data
+
 def _parse_1D_monitor(text):
     ''' populates data fields of new Data1D object using the text from a mccode data file '''
     data = Data1D()
-
+     # load essential header data
+    data = _parse_monitor_common(data,text)      
+    data = _parse_monitor_xylabel(data,text)
     try:
-        # load essential header data
-        '''# component: Ldetector'''
-        m = re.search('\# component: ([\w\.]+)\n', text)
-        data.component = m.group(1)
-        '''# filename: Edet.dat'''
-        m = re.search('\# filename: ([\-\+\w\.\,]+)\n', text)
-        data.filename = m.group(1)
-        '''# title: Wavelength monitor'''
-        m = re.search('\# title: (%s)\n' % freetext_pat, text)
-        data.title = m.group(1)
-        '''# xlabel: Wavelength [AA]'''
-        m = re.search('\# xlabel: (%s)\n' % freetext_pat, text)
-        data.xlabel = m.group(1)
-        '''# ylabel: Intensity'''
-        m = re.search('\# ylabel: (%s)\n' % freetext_pat, text)
-        data.ylabel = m.group(1)
-
         '''# xvar: L'''
-        m = re.search('\# xvar: ([\w]+)\n', text)
+        m = re.search(r'# xvar: ([\w]+)\n', text)
         data.xvar = m.group(1)
         '''# xlimits: 5.5 6.5'''
-        m = re.search('\# xlimits: ([\d\.\-\+e]+) ([\d\.\-\+e]+)\n', text)
+        m = re.search(r'# xlimits: ([\d\.\-\+e]+) ([\d\.\-\+e]+)\n', text)
         data.xlimits = (float(m.group(1)), float(m.group(2)))
 
         '''# yvar: (I,I_err)'''
-        m = re.search('\# yvar: \(([\w]+),([\w]+)\)\n', text)
+        m = re.search(r'# yvar: \(([\w]+),([\w]+)\)\n', text)
         data.yvar = (m.group(1), m.group(2))
 
-        '''# values: 6.72365e-17 4.07766e-18 4750'''
-        m = re.search('\# values: ([\d\-\+\.e]+) ([\d\-\+\.e]+) ([\d\-\+\.e]+)\n', text)
-        data.values = (Decimal(m.group(1)), Decimal(m.group(2)), float(m.group(3)))
         '''# statistics: X0=5.99569; dX=0.0266368;'''
         m = re.search('\# statistics: X0=([\d\.\-\+e]+); dX=([\d\.\-\+e]+);\n', text)
         data.statistics = 'X0=%.2E; dX=%.2E;' % (Decimal(m.group(1)), Decimal(m.group(2)))
@@ -85,55 +139,33 @@ def _parse_1D_monitor(text):
     except Exception as e:
         print('Data1D load error.')
         raise e
-
     return data
 
 def _parse_2D_monitor(text):
     data = Data2D()
 
     ''' populates data fields using the text from a mccode data file '''
+    # load essential header data
+    data = _parse_monitor_common(data,text)
+    data = _parse_monitor_xylabel(data,text)
     try:
-        # load essential header data
-        '''# component: detector'''
-        m = re.search('\# component: ([\w]+)\n', text)
-        if m:
-            data.component = m.group(1)
-        else:
-            data.component = "(no comp name)"
-        '''# filename: PSD.dat'''
-        m = re.search('\# filename: ([\-\+\w\.\,]+)\n', text)
-        data.filename = m.group(1)
-        '''# title: PSD monitor'''
-        m = re.search('\# title: (%s)\n' % freetext_pat, text)
-        data.title = m.group(1)
-
-        '''# xlabel: X position [cm]'''
-        m = re.search('\# xlabel: (%s)\n' % freetext_pat, text)
-        data.xlabel = m.group(1)
-        '''# ylabel: Y position [cm]'''
-        m = re.search('\# ylabel: (%s)\n' % freetext_pat, text)
-        data.ylabel = m.group(1)
-
         '''# xvar: X'''
-        m = re.search('\# xvar: (%s)\n' % freetext_pat, text)
+        m = re.search(r'# xvar: '+'({})'.format(freetext_pat)+r'\n', text)
         data.xvar = m.group(1)
         '''# yvar: Y '''
-        m = re.search('\# yvar: (%s)\n' % freetext_pat, text)
+        m = re.search(r'# yvar: '+'({})'.format(freetext_pat)+r'\n', text)
         data.yvar = m.group(1)
 
         '''# zvar: I '''
-        m = re.search('\# zvar: (%s)\n' % freetext_pat, text)
+        m = re.search(r'# zvar: '+'({})'.format(freetext_pat)+r'\n', text)
         data.zvar = m.group(1)
         '''
         # xylimits: -30 30 -30 30
         # xylimits: 0 5e+06 0.5 100
         '''
-        m = re.search('\# xylimits: ([\d\.\-\+e]+) ([\d\.\-\+e]+) ([\d\.\-\+e]+) ([\d\.\-\+e]+)([\ \d\.\-\+e]*)\n', text)
+        m = re.search(r'# xylimits: ([\d\.\-\+e]+) ([\d\.\-\+e]+) ([\d\.\-\+e]+) ([\d\.\-\+e]+)([\ \d\.\-\+e]*)\n', text)
         data.xylimits = (float(m.group(1)), float(m.group(2)), float(m.group(3)), float(m.group(4)))
 
-        '''# values: 6.72365e-17 4.07766e-18 4750'''
-        m = re.search('\# values: ([\d\+\-\.e]+) ([\d\+\-\.e]+) ([\d\+\-\.e]+)\n', text)
-        data.values = (Decimal(m.group(1)), Decimal(m.group(2)), float(m.group(3)))
         '''# statistics: X0=5.99569; dX=0.0266368;'''
         m = re.search('\# statistics: X0=([\d\.\+\-e]+); dX=([\d\.\+\-e]+); Y0=([\d\.\+\-e]+); dY=([\d\.\+\-e]+);\n', text)
 
@@ -182,11 +214,10 @@ def load_ascii_monitor(monfile):
         with open(f)as fh:
             text = fh.read()
         # determine 1D / 2D data
-        m = re.search('\# type: (\w+)', text)
+        m = re.search(r'# type: (\w+)', text)
         typ = m.group(1)
         if typ == 'array_0d':
-            print("load_monitor: Not loading 0d dataset %s" % monfile)
-            data = Data0D()
+            data = _parse_0D_monitor(text)
         elif typ == 'array_1d':
             data = _parse_1D_monitor(text)
         elif typ == 'array_2d':

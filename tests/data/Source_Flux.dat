@@ -1,0 +1,39 @@
+# Format: McCode with text headers
+# URL: http://www.mccode.org
+# Creator: McStas 2.7 - Dec. 07, 2020
+# Instrument: MANTA2.instr
+# Ncount: 25000000
+# Trace: no
+# Gravitation: no
+# Seed: 1620340474
+# Directory: ./Eruns_2/0
+# Nodes: 40
+# Param: Wavelength_Min=0
+# Param: Wavelength_Max=10
+# Param: ei=2
+# Param: bldg_coord=0
+# Param: ngchan=3
+# Param: H_radius=1.6
+# Param: Dist_cs2mono=7.113
+# Param: wid1=0.05
+# Param: ht1=0.114
+# Param: wid2=0.05
+# Param: ht2=1
+# Param: m_x=7
+# Param: m_y=5
+# Param: NVS_mx=0
+# Param: NVS_my=0
+# Param: exit_slit_wid=0.5
+# Date: Thu May  6 12:25:22 2021 (1620318322)
+# type: array_0d
+# Source: MANTA (MANTA2.instr)
+# component: Source_Flux
+# position: 0 0 0.118999
+# title: Single monitor Source_Flux
+# Ncount: 1000000000
+# statistics: None
+# signal: None
+# values: 5.88603e+12 2.99155e+08 7.83201e+08
+# xylimits: 0 0 0 0 0 0
+# variables: I I_err N
+5.88603e+12 2.99155e+08 7.83201e+08
