@@ -13,9 +13,13 @@ class TestCase(unittest.TestCase):
         #import mcstasclasspy.mcmonloader as mcm
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
         assert isinstance(data,mcm.Data1D)
+        assert data.component=='Source_Spectrum'
+        assert data.title=='Wavelength monitor'
     def test_load2D(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
         assert isinstance(data,mcm.Data2D)
+        assert data.component=='Source_Image'
+        assert data.title=='PSD monitor'
 if __name__ == "__main__":
     interactive = True
     unittest.main()

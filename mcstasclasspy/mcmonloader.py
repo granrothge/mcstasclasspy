@@ -21,6 +21,21 @@ Utility funcitons for loading and parsing mccode output files
 '''
 freetext_pat = '.+'
 
+def _parse_monitor_common(data,text):
+    try:
+        '''# component: Ldetector'''
+        m = re.search(r'# component: ([\w\.]+)\n', text)
+        if m:
+            data.component = m.group(1)
+        else:
+            data.component = "(no comp name)"
+        '''# title: Wavelength monitor'''
+        m = re.search(r'\# title: '+'({})'.format(freetext_pat)+r'\n', text)
+        data.title = m.group(1)
+    except Exception as e:
+        print('Common Data load error.')
+        raise e
+    return data 
 
 def _parse_0D_monitor(text):
     ''' populates data fields of new Data1D object using the text from a mccode data file '''
@@ -28,18 +43,11 @@ def _parse_0D_monitor(text):
 
     try:
         # load essential header data
-        '''# component: Ldetector'''
-        m = re.search(r'# component: ([\w\.]+)\n', text)
-        data.component = m.group(1)
+        data = _parse_monitor_common(data,text)
         '''# filename: Edet.dat'''
         #m = re.search('\# filename: ([\-\+\w\.\,]+)\n', text)
         #data.filename = m.group(1)
-        '''# title: Wavelength monitor'''
-        m = re.search('\# title: (%s)\n' % freetext_pat, text)
-        data.title = m.group(1)
-        # '''# yvar: (I,I_err)'''
-        # m = re.search('\# yvar: \(([\w]+),([\w]+)\)\n', text)
-        # data.yvar = (m.group(1), m.group(2))
+      
         '''# values: 6.72365e-17 4.07766e-18 4750'''
         m = re.search('\# values: ([\d\-\+\.e]+) ([\d\-\+\.e]+) ([\d\-\+\.e]+)\n', text)
         data.values = (Decimal(m.group(1)), Decimal(m.group(2)), float(m.group(3)))
@@ -76,15 +84,11 @@ def _parse_1D_monitor(text):
 
     try:
         # load essential header data
-        '''# component: Ldetector'''
-        m = re.search('\# component: ([\w\.]+)\n', text)
-        data.component = m.group(1)
+        data = _parse_monitor_common(data,text)
+        
         '''# filename: Edet.dat'''
         m = re.search('\# filename: ([\-\+\w\.\,]+)\n', text)
         data.filename = m.group(1)
-        '''# title: Wavelength monitor'''
-        m = re.search('\# title: (%s)\n' % freetext_pat, text)
-        data.title = m.group(1)
         '''# xlabel: Wavelength [AA]'''
         m = re.search('\# xlabel: (%s)\n' % freetext_pat, text)
         data.xlabel = m.group(1)
@@ -143,19 +147,16 @@ def _parse_2D_monitor(text):
     ''' populates data fields using the text from a mccode data file '''
     try:
         # load essential header data
-        '''# component: detector'''
-        m = re.search('\# component: ([\w]+)\n', text)
-        if m:
-            data.component = m.group(1)
-        else:
-            data.component = "(no comp name)"
+        data = _parse_monitor_common(data,text)
+        #'''# component: detector'''
+        # m = re.search('\# component: ([\w]+)\n', text)
+        # if m:
+        #     data.component = m.group(1)
+        # else:
+        #     data.component = "(no comp name)"
         '''# filename: PSD.dat'''
         m = re.search('\# filename: ([\-\+\w\.\,]+)\n', text)
         data.filename = m.group(1)
-        '''# title: PSD monitor'''
-        m = re.search('\# title: (%s)\n' % freetext_pat, text)
-        data.title = m.group(1)
-
         '''# xlabel: X position [cm]'''
         m = re.search('\# xlabel: (%s)\n' % freetext_pat, text)
         data.xlabel = m.group(1)
