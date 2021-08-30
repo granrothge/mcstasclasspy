@@ -29,7 +29,7 @@ def _parse_0D_monitor(text):
     try:
         # load essential header data
         '''# component: Ldetector'''
-        m = re.search('\# component: ([\w\.]+)\n', text)
+        m = re.search(r'# component: ([\w\.]+)\n', text)
         data.component = m.group(1)
         '''# filename: Edet.dat'''
         #m = re.search('\# filename: ([\-\+\w\.\,]+)\n', text)
@@ -40,7 +40,6 @@ def _parse_0D_monitor(text):
         # '''# yvar: (I,I_err)'''
         # m = re.search('\# yvar: \(([\w]+),([\w]+)\)\n', text)
         # data.yvar = (m.group(1), m.group(2))
-
         '''# values: 6.72365e-17 4.07766e-18 4750'''
         m = re.search('\# values: ([\d\-\+\.e]+) ([\d\-\+\.e]+) ([\d\-\+\.e]+)\n', text)
         data.values = (Decimal(m.group(1)), Decimal(m.group(2)), float(m.group(3)))
