@@ -27,6 +27,19 @@ class TestCase(unittest.TestCase):
             from matplotlib import pyplot as plt
             plt.show()
         return
+    def test_plot_ax(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
+        from matplotlib import pyplot as plt
+        if not interactive:
+            import matplotlib
+            matplotlib.use('Agg')
+        f,ax =plt.subplots()    
+        data.plot(ax=ax)
+        if interactive:
+            from matplotlib import pyplot as plt
+            plt.show()
+        return
+        
     def test_mult(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
         data2 = data * 5

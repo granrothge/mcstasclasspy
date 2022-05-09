@@ -38,22 +38,39 @@ class Data2D(DataMcCode):
 
     def __str__(self):
         return 'Data2D, ' + self.get_stats_title()
-        
+
     @plt_func_wrap
     def pcolor(self, ax=None, **kwargs):
         """ make a pcolor plot of a 2D mcstas monitor """
         xvals, yvals = self.createxyvec()
         im = ax.pcolor(xvals, yvals, self.zvals, **kwargs)
         return im
+    @plt_func_wrap
+    def contourf(self,ax=None, **kwargs):
+        """ make a colorf plot of a 2D mcstas monitor """
+        xvals,yvals =self.createxyvec(bin_bounds=False)
+        im = ax.contourf(xvals, yvals, np.array(self.zvals), **kwargs)
+        return im
+    @plt_func_wrap
+    def contour(self,ax=None, **kwargs):
+        """ make a colorf plot of a 2D mcstas monitor """
+        xvals,yvals =self.createxyvec(bin_bounds=False)
+        im = ax.contour(xvals, yvals, np.array(self.zvals), **kwargs)
+        return im
 
-    def createxyvec(self):
+    def createxyvec(self,bin_bounds=True):
         """
         create a vector for the x and y coordinates from a 2D class
+        bin_bounds: If true calculate the boundaries of the bins
+                    If false caculate the centers of the bins
         """
         zarr = np.array(self.zvals)
         zshp = zarr.shape
         xvec = np.linspace(self.xylimits[0], self.xylimits[1], zshp[1]+1)
         yvec = np.linspace(self.xylimits[2], self.xylimits[3], zshp[0]+1)
+        if not bin_bounds:
+            xvec = (xvec[1:]+xvec[:-1])/2
+            yvec = (yvec[1:]+yvec[:-1])/2
         return xvec, yvec
 
     def cut(self, cutdir, cutcen, cutwidth, xlims=None):

@@ -16,6 +16,26 @@ class TestCase(unittest.TestCase):
             from matplotlib import pyplot as plt
             plt.show()
         return
+    def test_contourf(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
+        if not interactive:
+            import matplotlib
+            matplotlib.use('Agg')
+        data.contourf()
+        if interactive:
+            from matplotlib import pyplot as plt
+            plt.show()
+        return
+    def test_contour(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
+        if not interactive:
+            import matplotlib
+            matplotlib.use('Agg')
+        data.contour()
+        if interactive:
+            from matplotlib import pyplot as plt
+            plt.show()
+        return
     def test_cut(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
         cut1 = data.cut('y',0,0.5)
