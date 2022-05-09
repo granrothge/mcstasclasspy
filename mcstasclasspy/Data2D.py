@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from .DataMCCode import DataMcCode
 from .Data1D import Data1D
+from .utils import plt_func_wrap
 class Data2D(DataMcCode):
     ''' PSD data type '''
 
@@ -37,14 +38,12 @@ class Data2D(DataMcCode):
 
     def __str__(self):
         return 'Data2D, ' + self.get_stats_title()
-
+        
+    @plt_func_wrap
     def pcolor(self, ax=None, **kwargs):
         """ make a pcolor plot of a 2D mcstas monitor """
-        if ax==None:
-            fig, ax = plt.subplots()
         xvals, yvals = self.createxyvec()
         im = ax.pcolor(xvals, yvals, self.zvals, **kwargs)
-        self._add_titles(ax)
         return im
 
     def createxyvec(self):

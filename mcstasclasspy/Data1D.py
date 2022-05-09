@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import functools
 from .DataMCCode import DataMcCode
+from .utils import plt_func_wrap
 
 def check_type(func):
     @functools.wraps(func)
@@ -10,17 +11,6 @@ def check_type(func):
             raise RuntimeError("other must be a 1D instance or a constant")
         return func(*args,**kwargs)
     return _wrapper
-
-def plt_func_wrap(func):
-    @functools.wraps(func)
-    def _plt_wrapper(*args,**kwargs):
-        if not 'ax' in kwargs.keys():
-            fig, ax = plt.subplots()
-        im = func(*args,ax=ax,**kwargs)
-        args[0]._add_titles(ax)
-        return im
-    return _plt_wrapper
-
 
 class Data1D(DataMcCode):
     ''' 1d plots use this data type '''
