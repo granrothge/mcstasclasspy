@@ -39,9 +39,15 @@ class TestCase(unittest.TestCase):
 
     def test_load_hist1D(self):
         data =mcm.load_mcvine_histogram(os.path.join(datadir,'ienergy.h5'))
+        assert data.xlabel == 'energy [1.60218e-22*m**2*kg*s**-2]'
+        assert data.xvar =='energy'
 
     def test_load_hist2D(self):
         data =mcm.load_mcvine_histogram(os.path.join(datadir,'ix_y.h5'))
+        assert data.xlabel == 'x [1*m]'
+        assert data.ylabel == 'y [1*m]'
+        assert data.xvar == 'x'
+        assert data.yvar == 'y'
 
 if __name__ == "__main__":
     interactive = True

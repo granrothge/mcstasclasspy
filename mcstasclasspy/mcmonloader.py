@@ -238,8 +238,7 @@ def load_mcvine_histogram(monfile):
     with h5py.File(monfile) as fh:
         rtnm = list(fh.keys())
         datain = fh[rtnm[0]]['data'][:]
-        errsin = fh[rtnm[0]]['errors'][:]
-        ngrid = datain.ndim
+        errsin = np.sqrt(fh[rtnm[0]]['errors'][:])
         hgrid = fh[rtnm[0]]['grid']
         grid = {}
         binlist = ['bin centers','bin boundaries']
@@ -257,20 +256,21 @@ def load_mcvine_histogram(monfile):
 
         elif datain.ndim == 2:
             data = Data2D()
-            data.ylabel = hgrid[grdlst[1]].attrs['name']+hgrid[grdlst[1]].attrs['unit']
+            data.ylabel = '{} [{}]'.format(hgrid[grdlst[1]].attrs['name'],hgrid[grdlst[1]].attrs['unit'])
             data.yvar = grdlst[1]
             data.zvals = datain
-            data.xylimits = (grid[grdlst[0]]['bin centers'].min(),grid[grdlst[0]]['bin centers'].max(),
-                             grid[grdlst[1]]['bin centers'].min(),grid[grdlst[1]]['bin centers'].max())
+            data.xylimits = (grid[grdlst[0]]['bin boundaries'].min(),grid[grdlst[0]]['bin boundaries'].max(),
+                             grid[grdlst[1]]['bin boundaries'].min(),grid[grdlst[1]]['bin boundaries'].max())
             data.errs = errsin
 
         else:
             raise RuntimeError('data of {} dimensions is not implemented'.format(datain.ndim))
         # Common to all types 
         data.xvar = grdlst[0]
-        data.xlabel = hgrid[grdlst[0]].attrs['name']+hgrid[grdlst[0]].attrs['unit']       
+        data.xlabel = '{} [{}]'.format(hgrid[grdlst[0]].attrs['name'],hgrid[grdlst[0]].attrs['unit'])       
         data.filename = monfile   
         data.title =  fh[rtnm[0]].attrs['title']
+        return data
         
 
 
