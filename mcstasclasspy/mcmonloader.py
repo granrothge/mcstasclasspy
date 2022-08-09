@@ -1,10 +1,11 @@
 # rework of mcploatloader.py for plotting single monitor data
-
+# expand to also load histogram files
 '''
 functionality for loading mccode data into suitable data types,
 and assembling it in a plot-friendly way.
 '''
 #from os import fchdir
+import h5py
 import re
 from decimal import Decimal
 import numpy as np
@@ -229,5 +230,47 @@ def load_ascii_monitor(monfile):
     else:
         data = Data0D()    
     return data
+
+def load_mcvine_histogram(monfile):
+    """
+    load a histogram h5py file.
+    """
+    with h5py.File(monfile) as fh:
+        rtnm = list(fh.keys())
+        datain = fh[rtnm[0]]['data'][:]
+        errsin = fh[rtnm[0]]['errors'][:]
+        ngrid = datain.ndim
+        hgrid = fh[rtnm[0]]['grid']
+        grid = {}
+        binlist = ['bin centers','bin boundaries']
+        grdlst  = list(hgrid.keys())
+        for item in grdlst:
+            grid[item] = {}
+            for bint in binlist:
+                grid[item][bint] = hgrid[item][bint][:]
+        if datain.ndim == 1:
+            data = Data1D()
+            data.xvals = grid[grdlst[0]]['bin centers']
+            data.yvals = datain
+            data.y_err_vals = errsin
+      #  data.Nvals = Nvals
+
+        elif datain.ndim == 2:
+            data = Data2D()
+            data.ylabel = hgrid[grdlst[1]].attrs['name']+hgrid[grdlst[1]].attrs['unit']
+            data.yvar = grdlst[1]
+            data.zvals = datain
+            data.xylimits = (grid[grdlst[0]]['bin centers'].min(),grid[grdlst[0]]['bin centers'].max(),
+                             grid[grdlst[1]]['bin centers'].min(),grid[grdlst[1]]['bin centers'].max())
+            data.errs = errsin
+
+        else:
+            raise RuntimeError('data of {} dimensions is not implemented'.format(datain.ndim))
+        # Common to all types 
+        data.xvar = grdlst[0]
+        data.xlabel = hgrid[grdlst[0]].attrs['name']+hgrid[grdlst[0]].attrs['unit']       
+        data.filename = monfile   
+        data.title =  fh[rtnm[0]].attrs['title']
+        
 
 
