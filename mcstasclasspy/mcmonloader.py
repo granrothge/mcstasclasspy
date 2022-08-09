@@ -4,7 +4,7 @@
 functionality for loading mccode data into suitable data types,
 and assembling it in a plot-friendly way.
 '''
-from os import fchdir
+#from os import fchdir
 import re
 from decimal import Decimal
 import numpy as np

@@ -1,6 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import functools
 from .DataMCCode import DataMcCode
+from .utils import plt_func_wrap
+
+def check_type(func):
+    @functools.wraps(func)
+    def _wrapper(*args,**kwargs):
+        if not isinstance(args[1], (Data1D, float, int)):
+            raise RuntimeError("other must be a 1D instance or a constant")
+        return func(*args,**kwargs)
+    return _wrapper
+
 class Data1D(DataMcCode):
     ''' 1d plots use this data type '''
     def __init__(self):
@@ -27,16 +38,16 @@ class Data1D(DataMcCode):
         self.y_err_vals = []
         self.Nvals = []
 
+    @check_type
     def __truediv__(self, other):
         """
         divide by a 1D instance or a constant
         """
-        if not isinstance(other, (Data1D, float, int)):
-            raise RuntimeError("other must be a 1D instance or a constant")
         outdat = Data1D()
         outdat.xvals = self.xvals
         outdat.xlabel = self.xlabel
         if isinstance(other, Data1D):
+            outdat.title = '{}/{}'.format(self.title,other.title)
             outdat.yvals = self.yvals/other.yvals
             outdat.y_err_vals = outdat.yvals*np.sqrt((self.y_err_vals/self.yvals)**2 +
                                                      (other.y_err_vals/other.yvals)**2)
@@ -45,16 +56,16 @@ class Data1D(DataMcCode):
             outdat.y_err_vals = self.y_err_vals/other
         return outdat
 
+    @check_type
     def __mul__(self, other):
         """
         multiply by a 1D instance or a constant
         """
-        if not isinstance(other, (Data1D, float, int)):
-            raise RuntimeError("other must be a 1D instance or a constant")
         outdat = Data1D()
         outdat.xvals = self.xvals
         outdat.xlabel = self.xlabel
         if isinstance(other, Data1D):
+            outdat.title = '{}*{}'.format(self.title,other.title)
             outdat.yvals = self.yvals * other.yvals
             outdat.y_err_vals = outdat.yvals*np.sqrt((self.y_err_vals/self.yvals)**2 +
                                                      (other.y_err_vals/other.yvals)**2)
@@ -63,16 +74,17 @@ class Data1D(DataMcCode):
             outdat.y_err_vals = self.y_err_vals * other
         return outdat
 
+    @check_type
     def __add__(self,other):
         """
         add 2 1d instances together or add a constant
         """
-        if not isinstance(other, (Data1D, float, int)):
-            raise RuntimeError("other must be a 1D instance or a constant")
+        
         outdat = Data1D()
         outdat.xvals = self.xvals
         outdat.xlabel = self.xlabel
         if isinstance(other,Data1D):
+            outdat.title = '{}+{}'.format(self.title,other.title)
             outdat.yvals = self.yvals + other.yvals
             outdat.y_err_vals = np.sqrt(self.y_err_vals**2+other.y_err_vals**2)
         else:
@@ -80,16 +92,16 @@ class Data1D(DataMcCode):
             outdat.y_err_vals =self.y_err_vals 
         return outdat
     
+    @check_type
     def __sub__(self,other):
         """
        subtract 2 1d instances subtract a constant
         """
-        if not isinstance(other, (Data1D, float, int)):
-            raise RuntimeError("other must be a 1D instance or a constant")
         outdat = Data1D()
         outdat.xvals = self.xvals
         outdat.xlabel = self.xlabel
         if isinstance(other,Data1D):
+            outdat.title = '{}-{}'.format(self.title,other.title)
             outdat.yvals = self.yvals - other.yvals
             outdat.y_err_vals = np.sqrt(self.y_err_vals**2+other.y_err_vals**2)
         else:
@@ -136,22 +148,18 @@ class Data1D(DataMcCode):
     def __str__(self):
         return 'Data1D, ' + self.get_stats_title()
 
-    def errorbar(self, ax=None, **kwargs):
+    @plt_func_wrap 
+    def errorbar(self,ax=None,**kwargs):
         """
         plot an errorbar plot
         """
-        if ax == None:
-            fig, ax = plt.subplots()
         im = ax.errorbar(self.xvals, self.yvals, self.y_err_vals, **kwargs)
-        self._add_titles(ax)
         return im
 
+    @plt_func_wrap
     def plot(self, ax=None, **kwargs):
         """plot an x y plot"""
-        if ax==None:
-            fig, ax = plt.subplots()
         im = ax.plot(self.xvals, self.yvals, **kwargs)
-        self._add_titles(ax)
         return im
 
     def bin(self, binwidth):

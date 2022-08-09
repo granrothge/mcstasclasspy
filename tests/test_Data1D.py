@@ -27,10 +27,30 @@ class TestCase(unittest.TestCase):
             from matplotlib import pyplot as plt
             plt.show()
         return
+    def test_plot_ax(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
+        from matplotlib import pyplot as plt
+        if not interactive:
+            import matplotlib
+            matplotlib.use('Agg')
+        f,ax =plt.subplots()    
+        data.plot(ax=ax)
+        if interactive:
+            from matplotlib import pyplot as plt
+            plt.show()
+        return
+        
     def test_mult(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
         data2 = data * 5
         assert(abs(((data2.yvals-5*data.yvals))<1e-5).all())
+    def test_mult2(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
+        cut1 = data.cut('x',0,0.5)
+        cut2 = data.cut('x',2,0.5)
+        cutd = cut1*cut2
+        assert np.all(cutd.yvals == cut1.yvals*cut2.yvals)
+        return
     def test_peakstats(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
         data.peakstats()
@@ -53,6 +73,12 @@ class TestCase(unittest.TestCase):
         cutd = cut1-cut2
         assert np.all(cutd.yvals == cut1.yvals-cut2.yvals)
         return
+    
+    def test_div2(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
+        data2 = data / 5
+        assert(abs(((data2.yvals-data.yvals/5))<1e-5).all())
+        
     
 if __name__ == "__main__":
     interactive = True

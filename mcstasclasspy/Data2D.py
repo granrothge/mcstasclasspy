@@ -1,7 +1,30 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import functools
+import copy
 from .DataMCCode import DataMcCode
 from .Data1D import Data1D
+from .utils import plt_func_wrap
+
+def check_type(func):
+    @functools.wraps(func)
+    def _wrapper(*args,**kwargs):
+        if not isinstance(args[1], (Data2D, float, int)):
+            raise RuntimeError("other must be a 2D instance or a constant")
+        return func(*args,**kwargs)
+    return _wrapper
+
+def checkdims(func):
+    @functools.wraps(func)
+    def _wrapper(*args,**kwargs):
+        if isinstance(args[1],(Data2D)):
+            if  args[1].xylimits!=args[0].xylimits:
+                raise RuntimeError("x and y limits do not match")
+            if np.array(args[1].zvals).shape!=np.array(args[0].zvals).shape:
+                raise RuntimeError("x and y dimensions do not match")
+        return func(*args,**kwargs)
+    return _wrapper               
+
 class Data2D(DataMcCode):
     ''' PSD data type '''
 
@@ -29,6 +52,23 @@ class Data2D(DataMcCode):
         self.counts = []
         self.errors = []
 
+    @checkdims
+    @check_type    
+    def __add__(self,other):
+        """
+        add 2 1d instances together or add a constant
+        """
+        
+        outdat = copy.deepcopy(self)
+        if isinstance(other,Data2D):
+            outdat.title = '{}+{}'.format(self.title,other.title)
+            outdat.zvals = list(np.array(self.zvals) + np.array(other.zvals))
+            outdat.errors = list(np.sqrt(np.array(self.errors)**2+np.array(other.errors)**2))
+        else:
+            outdat.zvals = np.array(self.zvals) + other
+            outdat.errors =self.errors 
+        return outdat
+
     def get_stats_title(self):
         '''I=.... Err=... N=...; X0=...; dX=...;'''
         stitle = '%s=%e Err=%e N=%d' % (self.zvar, self.values[0],
@@ -38,23 +78,40 @@ class Data2D(DataMcCode):
     def __str__(self):
         return 'Data2D, ' + self.get_stats_title()
 
+    @plt_func_wrap
     def pcolor(self, ax=None, **kwargs):
         """ make a pcolor plot of a 2D mcstas monitor """
-        if ax==None:
-            fig, ax = plt.subplots()
         xvals, yvals = self.createxyvec()
         im = ax.pcolor(xvals, yvals, self.zvals, **kwargs)
-        self._add_titles(ax)
         return im
 
-    def createxyvec(self):
+    @plt_func_wrap
+    def contourf(self,ax=None, **kwargs):
+        """ make a colorf plot of a 2D mcstas monitor """
+        xvals,yvals =self.createxyvec(bin_bounds=False)
+        im = ax.contourf(xvals, yvals, np.array(self.zvals), **kwargs)
+        return im
+    
+    @plt_func_wrap
+    def contour(self,ax=None, **kwargs):
+        """ make a colorf plot of a 2D mcstas monitor """
+        xvals,yvals =self.createxyvec(bin_bounds=False)
+        im = ax.contour(xvals, yvals, np.array(self.zvals), **kwargs)
+        return im
+
+    def createxyvec(self,bin_bounds=True):
         """
         create a vector for the x and y coordinates from a 2D class
+        bin_bounds: If true calculate the boundaries of the bins
+                    If false caculate the centers of the bins
         """
         zarr = np.array(self.zvals)
         zshp = zarr.shape
         xvec = np.linspace(self.xylimits[0], self.xylimits[1], zshp[1]+1)
         yvec = np.linspace(self.xylimits[2], self.xylimits[3], zshp[0]+1)
+        if not bin_bounds:
+            xvec = (xvec[1:]+xvec[:-1])/2
+            yvec = (yvec[1:]+yvec[:-1])/2
         return xvec, yvec
 
     def cut(self, cutdir, cutcen, cutwidth, xlims=None):
