@@ -103,7 +103,7 @@ class Data2D(DataMcCode):
         """
         create a vector for the x and y coordinates from a 2D class
         bin_bounds: If true calculate the boundaries of the bins
-                    If false caculate the centers of the bins
+                    If false calculate the centers of the bins
         """
         zarr = np.array(self.zvals)
         zshp = zarr.shape
