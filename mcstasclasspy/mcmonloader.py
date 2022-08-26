@@ -271,6 +271,37 @@ def load_mcvine_histogram(monfile):
         data.filename = monfile   
         data.title =  fh[rtnm[0]].attrs['title']
         return data
-        
+
+def load_nxs(monfile,xaxis=None,yaxis=None,dset=None):
+    """ 
+    load a nexus formated file
+    """
+    with h5py.File(monfile,'r') as fh:
+        if dset==None:
+            rootlst = list(fh.keys())
+            if len(rootlst)>1:
+                raise RuntimeError("the nexus file has more than one data set please set dset to one of {}".format(rootlst))
+            else:
+                dset = rootlst[0]
+        signame = fh[dset].attrs['signal']  
+        I = fh[dset][signame][:]
+        axsnms = fh[dset].attrs['axes']  
+        if I.ndim == 2: 
+            data = Data2D()
+            data.zvals = I
+            if yaxis == None:
+                yaxis = axsnms[1]
+            data.ylabel = '{} [{}]'.format(yaxis,fh[dset][yaxis].attrs['units'])
+            data.yvar = yaxis
+        elif I.ndim == 1:
+            data = Data1D()
+            data.yvals = I
+        else:
+            raise RuntimeError ("{} Dimensions is not implemented",format(I.ndim))
+        if xaxis == None:
+           xaxis = axsnms[0]
+        data.xvar = xaxis
+        data.xlabel = '{} [{}]'.format(xaxis,fh[dset][xaxis].attrs['units'])
+        data.filename = monfile 
 
 

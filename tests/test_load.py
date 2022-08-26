@@ -48,6 +48,8 @@ class TestCase(unittest.TestCase):
         assert data.ylabel == 'y [1*m]'
         assert data.xvar == 'x'
         assert data.yvar == 'y'
+    def test_load_nxs(self):
+        data = mcm.load_nxs(os.path.join(datadir,'nxs_tst.nxs.h5'))
 
 if __name__ == "__main__":
     interactive = True
