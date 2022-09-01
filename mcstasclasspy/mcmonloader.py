@@ -325,5 +325,28 @@ def load_nxs(monfile,xaxis=None,yaxis=None,dset=None):
         data.xlabel = '{} [{}]'.format(xaxis,fh[dset][xaxis].attrs['units'])
         data.filename = monfile 
     return data
+def load_MD_Histo(monfile):
+    """load from a MD_Histo file created in Mantid """
+    with h5py.File(monfile,'r') as fh:
+        rt = fh['MDHistoWorkspace']['data']
+        signal = rt['signal'][:]
+        axlst = rt['signal'].attrs['axes'].decode().split(':')
+        sigsq = signal.squeeze()
+        errs = np.sqrt(rt['errors_squared'][:])
+        xvals = rt[axlst[0]][:]
+        if sigsq.ndim ==1:
+            data = Data1D()
+            data.yvals = signal.squeeze()
+            data.y_err_vals =  errs.squeeze()
+            data.xvals = (xvals[1:]+xvals[:-1])/2       
+        elif sigsq==2:
+            data = Data2D()
+            data.yvar = axlst[1]
+            data.zvals = signal.squeeze() 
+            data.errors = errs
+        else:
+            raise RuntimeError("Data of {} dimensions is not supported".format(sigd))
+        data.xvar=axlst[0]
+    return data
 
 
