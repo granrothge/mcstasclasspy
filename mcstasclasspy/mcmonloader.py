@@ -268,8 +268,11 @@ def load_mcvine_histogram(monfile):
         # Common to all types 
         data.xvar = grdlst[0]
         data.xlabel = '{} [{}]'.format(hgrid[grdlst[0]].attrs['name'],hgrid[grdlst[0]].attrs['unit'])       
-        data.filename = monfile   
-        data.title =  fh[rtnm[0]].attrs['title']
+        data.filename = monfile
+        try:   
+            data.title =  fh[rtnm[0]].attrs['title']
+        except:
+            data.title =''    
         return data
 
 def load_nxs(monfile,xaxis=None,yaxis=None,dset=None):
@@ -333,20 +336,45 @@ def load_MD_Histo(monfile):
         axlst = rt['signal'].attrs['axes'].decode().split(':')
         sigsq = signal.squeeze()
         errs = np.sqrt(rt['errors_squared'][:])
-        xvals = rt[axlst[0]][:]
+        mask = rt['mask'][:]
+        axnms = _sig_var(rt,axlst,sigsq)
+        print (axnms)
         if sigsq.ndim ==1:
             data = Data1D()
             data.yvals = signal.squeeze()
             data.y_err_vals =  errs.squeeze()
+            xvals = rt[axnms[0]][:]
             data.xvals = (xvals[1:]+xvals[:-1])/2       
-        elif sigsq==2:
+        elif sigsq.ndim==2:
             data = Data2D()
-            data.yvar = axlst[1]
-            data.zvals = signal.squeeze() 
+            xvals = rt[axnms[1]][:]
+            yvals = rt[axnms[0]][:]
+            data.yvar = axnms[0]
+            data.xvar = axnms[1]
+            data.zvals = sigsq
             data.errors = errs
+            data.mask = mask
+            data.xylimits = (xvals.min(),xvals.max(),yvals.min(),yvals.max())
         else:
-            raise RuntimeError("Data of {} dimensions is not supported".format(sigd))
-        data.xvar=axlst[0]
+            raise RuntimeError("Data of {} dimensions is not supported".format(sigsq.ndim))
+        
     return data
+
+def _sig_var(rt,axlst,sig):
+    """
+    returns a list of axis names in y,x order
+    """
+    axes = ['' for i in range(len(sig.shape))]
+    lts = {}
+    for ax in axlst:
+        lts[ax] = rt[ax].shape[0]-1
+    #print(lts)
+    for idx,val in enumerate(sig.shape):
+        #print('{}, {}'.format(idx,val))
+        for ky in lts.keys():
+            if lts[ky]== val:
+                axes[idx]=ky
+            #print (axes)
+    return axes
 
 

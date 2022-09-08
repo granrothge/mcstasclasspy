@@ -48,6 +48,9 @@ class TestCase(unittest.TestCase):
         assert data.ylabel == 'y [1*m]'
         assert data.xvar == 'x'
         assert data.yvar == 'y'
+    def test_load_hist2D_2(self):
+        data =mcm.load_mcvine_histogram(os.path.join(datadir,'res.h5'))
+        
     def test_load_nxs(self):
         data = mcm.load_nxs(os.path.join(datadir,'nxs_tst.nxs.h5'))
         assert data.xlabel == 'h [rlu]'
