@@ -333,7 +333,10 @@ def load_MD_Histo(monfile):
     with h5py.File(monfile,'r') as fh:
         rt = fh['MDHistoWorkspace']['data']
         signal = rt['signal'][:]
-        axlst = rt['signal'].attrs['axes'].decode().split(':')
+        try:
+            axlst = rt['signal'].attrs['axes'].decode().split(':')
+        except AttributeError:
+            axlst = rt['signal'].attrs['axes'].split(':')
         sigsq = signal.squeeze()
         errs = np.sqrt(rt['errors_squared'][:])
         mask = rt['mask'][:]

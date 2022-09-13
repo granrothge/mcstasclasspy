@@ -50,7 +50,7 @@ class TestCase(unittest.TestCase):
         assert data.yvar == 'y'
     def test_load_hist2D_2(self):
         data =mcm.load_mcvine_histogram(os.path.join(datadir,'res.h5'))
-        
+
     def test_load_nxs(self):
         data = mcm.load_nxs(os.path.join(datadir,'nxs_tst.nxs.h5'))
         assert data.xlabel == 'h [rlu]'
@@ -59,6 +59,8 @@ class TestCase(unittest.TestCase):
         data = mcm.load_nxs(os.path.join(datadir,'nxs_tst.nxs.h5'),xaxis='k',yaxis='E')
         assert data.xlabel == 'k [rlu]'
         assert data.ylabel == 'E [meV]'
+    def test_load_MDhisto(self):
+        data = mcm.load_MD_Histo(os.path.join(datadir,'test_MDhisto.nxs.h5'))
 
 if __name__ == "__main__":
     interactive = True

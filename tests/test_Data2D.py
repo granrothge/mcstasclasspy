@@ -74,7 +74,12 @@ class TestCase(unittest.TestCase):
             data+cut1
         return
 
-    
+    def test_write_MDHisto(self):
+        import numpy as np
+        data = mcm.load_nxs(os.path.join(datadir,'nxs_tst.nxs.h5'),xaxis='k',yaxis='E')
+        data.mask=np.zeros(data.zvals.shape,dtype=np.int8)
+        data.save_MDHisto('/tmp/test_gen_MD_histo.nxs')
+        os.remove('/tmp/test_gen_MD_histo.nxs')
 
     
 if __name__ == "__main__":
