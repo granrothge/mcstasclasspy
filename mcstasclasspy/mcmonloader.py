@@ -261,16 +261,123 @@ def load_mcvine_histogram(monfile):
             data.zvals = datain
             data.xylimits = (grid[grdlst[0]]['bin boundaries'].min(),grid[grdlst[0]]['bin boundaries'].max(),
                              grid[grdlst[1]]['bin boundaries'].min(),grid[grdlst[1]]['bin boundaries'].max())
-            data.errs = errsin
+            data.errors = errsin
 
         else:
             raise RuntimeError('data of {} dimensions is not implemented'.format(datain.ndim))
         # Common to all types 
         data.xvar = grdlst[0]
         data.xlabel = '{} [{}]'.format(hgrid[grdlst[0]].attrs['name'],hgrid[grdlst[0]].attrs['unit'])       
-        data.filename = monfile   
-        data.title =  fh[rtnm[0]].attrs['title']
+        data.filename = monfile
+        try:   
+            data.title =  fh[rtnm[0]].attrs['title']
+        except:
+            data.title =''    
         return data
+
+def load_nxs(monfile,xaxis=None,yaxis=None,dset=None):
+    """ 
+    load a simlple nexus formated file
+    If there is more than one data group in the file, 
+    dset specifies the group. 
+    If alternate axes should be on the plot, the y and x axis fields are provided.
+    monfile is the file.
+    the nexus file should have a 1 or 2 dimensional signal array, 
+    it may or may not have a <signal>_errors array. If not one will be created that is filled with zeros.
+    """
+    with h5py.File(monfile,'r') as fh:
+        if dset==None:
+            rootlst = list(fh.keys())
+            if len(rootlst)>1:
+                raise RuntimeError("the nexus file has more than one data set please set dset to one of {}".format(rootlst))
+            else:
+                dset = rootlst[0]
+        # handles common       
+        signame = fh[dset].attrs['signal']  
+        I = fh[dset][signame][:]
+        try:
+            errsin = fh[dset][signame+'_errors']
+        except:
+            errsin = np.zeros(I.shape)
+        axsnms = fh[dset].attrs['axes']
         
+        if xaxis == None:
+           xaxis = axsnms[0]
+        
+        # handle 2D case  
+        if I.ndim == 2: 
+            data = Data2D()
+            data.zvals = I
+            if yaxis == None:
+                yaxis = axsnms[1]
+            data.ylabel = '{} [{}]'.format(yaxis,fh[dset][yaxis].attrs['units'])
+            data.yvar = yaxis
+            ytmp = fh[dset][yaxis][:]
+            xtmp = fh[dset][xaxis][:]
+            data.xylimits = (xtmp.min(),xtmp.max(),ytmp.min(),ytmp.max())
+            data.errors = errsin
+        # handle 1D case    
+        elif I.ndim == 1:
+            data = Data1D()
+            data.yvals = I
+            data.xvals = fh[dset][xaxis][:]
+            data.y_err_vals = errsin
+        else:
+            raise RuntimeError ("{} Dimensions is not implemented".format(I.ndim))
+        data.xvar = xaxis
+        data.xlabel = '{} [{}]'.format(xaxis,fh[dset][xaxis].attrs['units'])
+        data.filename = monfile 
+    return data
+def load_MD_Histo(monfile):
+    """load from a MD_Histo file created in Mantid """
+    with h5py.File(monfile,'r') as fh:
+        rt = fh['MDHistoWorkspace']['data']
+        signal = rt['signal'][:]
+        try:
+            axlst = rt['signal'].attrs['axes'].decode().split(':')
+        except AttributeError:
+            axlst = rt['signal'].attrs['axes'].split(':')
+        sigsq = signal.squeeze()
+        errs = np.sqrt(rt['errors_squared'][:])
+        mask = rt['mask'][:]
+        axnms = _sig_var(rt,axlst,sigsq)
+        print (axnms)
+        if sigsq.ndim ==1:
+            data = Data1D()
+            data.yvals = signal.squeeze()
+            data.y_err_vals =  errs.squeeze()
+            xvals = rt[axnms[0]][:]
+            data.xvals = (xvals[1:]+xvals[:-1])/2       
+        elif sigsq.ndim==2:
+            data = Data2D()
+            xvals = rt[axnms[1]][:]
+            yvals = rt[axnms[0]][:]
+            data.yvar = axnms[0]
+            data.xvar = axnms[1]
+            data.zvals = sigsq
+            data.errors = errs
+            data.mask = mask
+            data.xylimits = (xvals.min(),xvals.max(),yvals.min(),yvals.max())
+        else:
+            raise RuntimeError("Data of {} dimensions is not supported".format(sigsq.ndim))
+        
+    return data
+
+def _sig_var(rt,axlst,sig):
+    """
+    returns a list of axis names in y,x order
+    """
+    axes = ['' for i in range(len(sig.shape))]
+    lts = {}
+    for ax in axlst:
+        lts[ax] = rt[ax].shape[0]-1
+    #print(lts)
+    for idx,val in enumerate(sig.shape):
+        #print('{}, {}'.format(idx,val))
+        for ky in lts.keys():
+            if lts[ky]== val:
+                axes[idx]=ky
+            #print (axes)
+    return axes
 
 
