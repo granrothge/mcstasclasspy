@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import functools
 import copy
+import h5py
+import datetime
 from .DataMCCode import DataMcCode
 from .Data1D import Data1D
 from .utils import plt_func_wrap
@@ -51,6 +53,7 @@ class Data2D(DataMcCode):
         self.zvals = []
         self.counts = []
         self.errors = []
+        self.mask = []
 
     @checkdims
     @check_type    
@@ -166,3 +169,40 @@ class Data2D(DataMcCode):
         data.y_err_vals = np.array(np.sqrt(np.sum(inerrors*inerrors, axis=zaxes_dict[int_dir])))
 
         return data
+
+    def save_MDHisto(self,filename):
+        """ Saves the data to an MD Histo Slice"""
+        with h5py.File(filename, 'w') as fh:
+            fh.attrs['HDF5_Version'] = '{}.{}.{}'.format(*(list(h5py.h5.HDF5_VERSION_COMPILED_AGAINST)))
+            fh.attrs['NeXus_version'] = '4.4.3' 
+            fh.attrs['file_time'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')
+            #fh.attrs['h5py_version'] = h5py.__version__
+            fh.create_group('MDHistoWorkspace')
+            fh['MDHistoWorkspace'].attrs['NX_class'] = 'NXentry'
+            fh['MDHistoWorkspace'].attrs['Qconvention'] = 'Inealstic'
+            fh['MDHistoWorkspace'].attrs['SaveMDVersion'] = 2
+            rt = fh['MDHistoWorkspace'].create_group('data')
+            rt.attrs['NX_class'] = 'NXdata'
+            rt.create_dataset("signal", data=self.zvals)
+            rt.create_dataset("errors_squared", data = self.errors*self.errors)
+            rt.create_dataset("mask",data=self.mask)
+            rt.create_dataset("num_events", data = np.zeros(self.zvals.shape))
+            xvec,yvec = self.createxyvec()
+            rt.create_dataset(self.xvar,data = xvec)
+            rt.create_dataset(self.yvar,data = yvec)
+            axses = {self.xvar:self.xlabel,self.yvar:self.ylabel}
+            for ax in axses.keys():
+                rt[ax].attrs['long_name'] = ax
+                if ax.find('E')>0:
+                    rt[ax].attrs['frame']= 'General Frame'   
+                elif (ax.find('H')>0) or (ax.find('K')>0) or (ax.find('K')>0) :
+                    rt[ax].attrs['frame'] = 'HKL'
+                rt[ax].attrs['units'] = axses[ax].split('[')[1].split(']')[0]
+            axsstr = "{}:{}".format(self.xvar,self.yvar)
+            rt['signal'].attrs['axes'] = axsstr
+            rt['signal'].attrs['signal'] = 1
+            fh['MDHistoWorkspace'].create_dataset('visual_normalization',data=0.0)
+            
+
+
+
