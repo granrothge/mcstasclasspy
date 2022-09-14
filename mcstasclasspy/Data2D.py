@@ -147,12 +147,13 @@ class Data2D(DataMcCode):
         if xlims == None:
             data.xlimits = xylimits_dict[cutdir]
             xmin_idx = 0
-            xmax_idx = -1
+            #xmax_idx = 1
+            xmax_idx = len(xyvals_dict[cutdir])-1
         else:
             xmin_idx = np.where(xyvals_dict[cutdir] < xlims[0])[0].max()
             xmax_idx = np.where(xyvals_dict[cutdir] > xlims[1])[0].min()
             data.xlimits = (xyvals_dict[cutdir][xmin_idx], xyvals_dict[cutdir][xmax_idx])
-        xylimits_idx[xylimitsidx_dict[cutdir]] = [xmin_idx, xmax_idx]
+        xylimits_idx[xylimitsidx_dict[cutdir]] = [xmin_idx, xmax_idx]  # set index limits along the cut direction
         data.yvar = self.zvar
         try:
             cut_min_idx = np.where(xyvals_dict[int_dir] < (cutcen-cutwidth/2.0))[0].max()
@@ -160,10 +161,10 @@ class Data2D(DataMcCode):
         except ValueError:
             raise Exception('''check to see that the width is not ouside
             the maximum limits of the data''')
-        xylimits_idx[xylimitsidx_dict[int_dir]] = [cut_min_idx, cut_max_idx]
+        xylimits_idx[xylimitsidx_dict[int_dir]] = [cut_min_idx, cut_max_idx] # set index limits along the integration direction
         # print (xylimits_idx)
         # note need to convert bin boundaries to centers for 1D data set.
-        data.xvals = np.array((xyvals_dict[cutdir][xmin_idx:(xmax_idx-1)]+xyvals_dict[cutdir][(xmin_idx+1):xmax_idx]))/2
+        data.xvals = np.array((xyvals_dict[cutdir][xmin_idx:(xmax_idx)]+xyvals_dict[cutdir][(xmin_idx+1):xmax_idx+1]))/2
         data.yvals = np.array(np.sum(zvals[xylimits_idx[0]:xylimits_idx[1], xylimits_idx[2]:xylimits_idx[3]],axis=zaxes_dict[int_dir]))
         inerrors = errvals[xylimits_idx[0]:xylimits_idx[1], xylimits_idx[2]:xylimits_idx[3]]
         data.y_err_vals = np.array(np.sqrt(np.sum(inerrors*inerrors, axis=zaxes_dict[int_dir])))
