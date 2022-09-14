@@ -82,6 +82,10 @@ class TestCase(unittest.TestCase):
         data.mask=np.zeros(data.zvals.shape,dtype=np.int8)
         data.save_MDHisto('/tmp/test_gen_MD_histo.nxs')
         os.remove('/tmp/test_gen_MD_histo.nxs')
+    
+    def test_str(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
+        print(data)
 
     
 if __name__ == "__main__":
