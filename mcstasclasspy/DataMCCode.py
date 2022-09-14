@@ -5,6 +5,7 @@ class DataMcCode(object):
         self.filepath = ''
         self.xlabel = ''
         self.ylabel = ''
+        self.statistics = ''
 
     def __str__(self, *args, **kwargs):
         return self.title

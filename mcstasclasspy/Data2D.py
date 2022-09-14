@@ -46,7 +46,6 @@ class Data2D(DataMcCode):
         self.xylimits = ()  # quadruple
 
         self.values = ()  # triplet
-        self.statistics = ''  # quadruple
         self.signal = ''
 
         # data references

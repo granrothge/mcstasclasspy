@@ -16,7 +16,7 @@ class Data0D(DataMcCode):
 
         self.yvar = () # pair
         self.values = () # triplet
-        self.statistics = ''
+        
 
         # data references
         self.yvals = []

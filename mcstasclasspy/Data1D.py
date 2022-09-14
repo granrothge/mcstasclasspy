@@ -30,8 +30,7 @@ class Data1D(DataMcCode):
 
         self.yvar = () # pair
         self.values = () # triplet
-        self.statistics = ''
-
+        
         # data references
         self.xvals = []
         self.yvals = []
