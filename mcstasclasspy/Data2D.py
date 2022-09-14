@@ -147,7 +147,6 @@ class Data2D(DataMcCode):
         if xlims == None:
             data.xlimits = xylimits_dict[cutdir]
             xmin_idx = 0
-            #xmax_idx = 1
             xmax_idx = len(xyvals_dict[cutdir])-1
         else:
             xmin_idx = np.where(xyvals_dict[cutdir] < xlims[0])[0].max()

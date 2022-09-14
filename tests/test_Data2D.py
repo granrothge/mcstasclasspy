@@ -42,8 +42,10 @@ class TestCase(unittest.TestCase):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
         cut1 = data.cut('y',0,0.5)
         cut2 = data.cut('x',0,0.5)
+        cut3 = data.cut('x',0,0.5,xlims=(-1,1))
         assert isinstance(cut1,mcm.Data1D)
         assert isinstance(cut2,mcm.Data1D)
+        assert isinstance(cut3,mcm.Data1D)
         return
 
     def test_cutoutrange(self):
