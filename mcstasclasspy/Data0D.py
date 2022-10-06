@@ -7,13 +7,9 @@ class Data0D(DataMcCode):
         super(Data0D, self).__init__()
 
         self.component = ''
-        self.filename = ''
-        self.title = ''
-        
+        self.filename = ''        
         self.ylabel = ''
-
         self.variables = []
-
         self.yvar = () # pair
         self.values = () # triplet
         
