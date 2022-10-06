@@ -216,7 +216,7 @@ class Data1D(DataMcCode):
     def setup_fit(self,model_fun,**kwargs):
         """ setup a Model and its fit parameters"""
         self.fmodel = lmfit.Model(model_fun)
-        self.fparams = self.model.make_params(**kwargs)
+        self.fparams = self.fmodel.make_params(**kwargs)
     
     def fit(self, nonzeroerr=True, useerr=True,**kwargs):
         """perform a fit using lmfit
@@ -228,8 +228,10 @@ class Data1D(DataMcCode):
         y = np.array(self.yvals)
         yerr = np.array(self.y_err_vals)
         fbl = np.full(len(x),True) 
-        if nonzeroerr:
+        if nonzeroerr & useerr:
             fbl =  yerr>0
+            if len(self.fparams)>np.sum(fbl):
+                raise RuntimeError("There must be more points with non zero error than adjustable parameters.")
         if useerr:  
             self.fresult = self.fmodel.fit(y[fbl],self.fparams,x=x[fbl],
                                            weights=1/yerr[fbl],**kwargs)
@@ -238,7 +240,7 @@ class Data1D(DataMcCode):
                                            **kwargs)
     
     
-    def get_parm_val(parmobj):
+    def get_parm_val(self,parmobj):
         """
         get a parameter value and its error from a lmfit result object
         if there is no stderr field return a nan.
@@ -250,12 +252,13 @@ class Data1D(DataMcCode):
             errout = np.nan
         return vout, errout
     
-    def res_str(res):
+    def res_str(self):
         """ Given a result object from lmfit format the parameters for output
         and provide a string"""
         outstr = ''
+        res = self.fresult
         for ky in res.params.keys():
-            pval, perr = get_parm_val(res.params[ky])
+            pval, perr = self.get_parm_val(res.params[ky])
             try:
                 if np.isfinite(perr):
                     outstr += '${} = {:.5e}\pm{:.2e}$\n'.format(ky, pval, perr)
@@ -267,7 +270,7 @@ class Data1D(DataMcCode):
         return outstr
 
     def plot_fit(self,npts=None,
-                 sp_kw={'figsize':(10,6),'gridspec_kw':{'width_ratios': [1, 2]}}):
+                 sp_kw={'figsize':(8,6),'gridspec_kw':{'width_ratios': [1, 2]}}):
         """plot data and resultant fit """
         if self.fresult==None:
             raise RuntimeError("A fit must be performed first")
@@ -279,7 +282,8 @@ class Data1D(DataMcCode):
         xev = np.linspace(xt.min(),xt.max(),npts)
         ax[1].plot(xev,self.fmodel.eval(self.fresult.params,x=xev),'r')
         ax[0].axis('off')
-        ax[0].text(0.01,0.99,self.fresult.fit_report(),
+        #ax[0].text(0.01,0.99,self.fresult.fit_report(),
+        ax[0].text(0.01,0.99,self.res_str(),
                    ha='left', va='top')
         return fig,ax
 
