@@ -6,6 +6,9 @@ class DataMcCode(object):
         self.xlabel = ''
         self.ylabel = ''
         self.statistics = ''
+        self.fmodel = None  # attribute for fit model
+        self.fparms = None  # attribute for fit parameters
+        self.fresult = None  # attribute for fit result
 
     def __str__(self, *args, **kwargs):
         return self.title

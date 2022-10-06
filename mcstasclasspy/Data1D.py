@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import functools
 from .DataMCCode import DataMcCode
 from .utils import plt_func_wrap
+import lmfit
 
 def check_type(func):
     @functools.wraps(func)
@@ -19,10 +20,6 @@ class Data1D(DataMcCode):
 
         self.component = ''
         self.filename = ''
-        self.title = ''
-        self.xlabel = ''
-        self.ylabel = ''
-
         self.xvar = ''
         self.xlimits = () # pair
 
@@ -215,3 +212,78 @@ class Data1D(DataMcCode):
         center = np.sum(self.yvals*self.xvals)/np.sum(self.yvals)
         wid = np.sqrt(np.sum(self.yvals*(self.xvals-center)**2)/np.sum(self.yvals))
         return(area, center, wid)
+    
+    def setup_fit(self,model_fun,**kwargs):
+        """ setup a Model and its fit parameters"""
+        self.fmodel = lmfit.Model(model_fun)
+        self.fparams = self.model.make_params(**kwargs)
+    
+    def fit(self, nonzeroerr=True, useerr=True,**kwargs):
+        """perform a fit using lmfit
+        by default only points with non zero error will be included in the fit """
+
+        if (self.fmodel==None) or (self.fparams==None):
+            raise RuntimeError("Run setup_fit to define a model first")
+        x = np.array(self.xvals)
+        y = np.array(self.yvals)
+        yerr = np.array(self.y_err_vals)
+        fbl = np.full(len(x),True) 
+        if nonzeroerr:
+            fbl =  yerr>0
+        if useerr:  
+            self.fresult = self.fmodel.fit(y[fbl],self.fparams,x=x[fbl],
+                                           weights=1/yerr[fbl],**kwargs)
+        else:
+            self.fresult = self.fmodel.fit(y[fbl],self.fparams,x=x[fbl],
+                                           **kwargs)
+    
+    
+    def get_parm_val(parmobj):
+        """
+        get a parameter value and its error from a lmfit result object
+        if there is no stderr field return a nan.
+        """
+        vout = parmobj.value
+        try:
+            errout = parmobj.stderr
+        except:
+            errout = np.nan
+        return vout, errout
+    
+    def res_str(res):
+        """ Given a result object from lmfit format the parameters for output
+        and provide a string"""
+        outstr = ''
+        for ky in res.params.keys():
+            pval, perr = get_parm_val(res.params[ky])
+            try:
+                if np.isfinite(perr):
+                    outstr += '${} = {:.5e}\pm{:.2e}$\n'.format(ky, pval, perr)
+                else:
+                    outstr += '${} = {:.5e}\pm${}\n'.format(ky, pval, perr)
+            except:
+                outstr += '${} = {:.5e}\pm${}\n'.format(ky, pval, perr)
+        outstr += '$\chi^2$ = {:.2f}'.format(res.redchi)
+        return outstr
+
+    def plot_fit(self,npts=None,
+                 sp_kw={'figsize':(10,6),'gridspec_kw':{'width_ratios': [1, 2]}}):
+        """plot data and resultant fit """
+        if self.fresult==None:
+            raise RuntimeError("A fit must be performed first")
+        fig,ax = plt.subplots(ncols=2, **sp_kw)
+        self.errorbar(ax=ax[1],fmt='bo')
+        xt = np.array(self.xvals)
+        if npts==None:
+            npts=len(xt)*3
+        xev = np.linspace(xt.min(),xt.max(),npts)
+        ax[1].plot(xev,self.fmodel.eval(self.fresult.params,x=xev),'r')
+        ax[0].axis('off')
+        ax[0].text(0.01,0.99,self.fresult.fit_report(),
+                   ha='left', va='top')
+        return fig,ax
+
+
+        
+  
+    
