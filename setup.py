@@ -16,5 +16,5 @@ setup(
     long_description_content_type='text/markdown',
     packages= find_packages(".", exclude=['tests']),
     author = "G. E. Granroth",
-    install_requires = ['numpy','matplotlib']
+    install_requires = ['numpy','matplotlib','lmfit']
 )
