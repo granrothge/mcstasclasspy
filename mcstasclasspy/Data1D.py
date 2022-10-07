@@ -208,9 +208,11 @@ class Data1D(DataMcCode):
         Calculate statistics assuming there is a peak.
         returns total area, center, and width
         """
-        area = np.sum(self.yvals)
-        center = np.sum(self.yvals*self.xvals)/np.sum(self.yvals)
-        wid = np.sqrt(np.sum(self.yvals*(self.xvals-center)**2)/np.sum(self.yvals))
+        x = np.array(self.xvals)
+        y = np.array(self.yvals)
+        area = np.sum(y)
+        center = np.sum(y*x)/area
+        wid = np.sqrt(np.sum(y*(x-center)**2)/area)
         return(area, center, wid)
     
     def setup_fit(self,model_fun,**kwargs):

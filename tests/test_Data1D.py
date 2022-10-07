@@ -121,9 +121,7 @@ class TestCase(unittest.TestCase):
          cut_1 = dat.cut('y',2.0,0.5,xlims=(3.5,6.5))
          with self.assertRaises(RuntimeError):
              cut_1.plot_fit()
-         
-
-        
+                
     
 if __name__ == "__main__":
     interactive = True
