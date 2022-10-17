@@ -53,7 +53,9 @@ class TestCase(unittest.TestCase):
         return
     def test_peakstats(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
-        data.peakstats()
+        pkres = data.peakstats()
+        for ky in pkres.keys():
+            assert ky in ['area','center','width']
         return
     def test_bin(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
