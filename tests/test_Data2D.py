@@ -63,6 +63,15 @@ class TestCase(unittest.TestCase):
         data2=copy.deepcopy(data)
         datao = data+data2
         return
+    def test_mult_const(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
+        datao = data*2
+        return
+    def test_mult(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
+        data2 = copy.deepcopy(data)
+        datao = data*data2
+        return
     def test_checkxylimsfail(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
         data2 = mcm.load_ascii_monitor(os.path.join(datadir,'Source_vertical_divLambda_map.dat'))

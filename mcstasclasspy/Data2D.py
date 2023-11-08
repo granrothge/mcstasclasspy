@@ -70,6 +70,22 @@ class Data2D(DataMcCode):
             outdat.zvals = np.array(self.zvals) + other
             outdat.errors =self.errors 
         return outdat
+    
+    @checkdims
+    @check_type    
+    def __mul__(self,other):
+        """
+        multiply 2 2d instances together or scale by a constant
+        """
+        outdat = copy.deepcopy(self)
+        if isinstance(other,Data2D):
+            outdat.title = '{}x{}'.format(self.title,other.title)
+            outdat.zvals = list(np.array(self.zvals) * np.array(other.zvals))
+            outdat.errors = list(outdat.zvals*(np.sqrt((np.array(self.errors)/np.array(self.zvals))**2+(np.array(other.errors)/np.array(other.zvals))**2)))
+        else:
+            outdat.zvals = list(np.array(self.zvals) * other)
+            outdat.errors = list(np.array(self.errors) * other) 
+        return outdat
 
     def get_stats_title(self):
         '''I=.... Err=... N=...; X0=...; dX=...;'''
