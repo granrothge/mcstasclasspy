@@ -206,14 +206,20 @@ class Data1D(DataMcCode):
     def peakstats(self):
         """
         Calculate statistics assuming there is a peak.
-        returns a dictionary of total area, center, and width
+        returns a dictionary of total area, center, width, and max
         """
         x = np.array(self.xvals)
         y = np.array(self.yvals)
         area = np.sum(y)
         center = np.sum(y*x)/area
         wid = np.sqrt(np.sum(y*(x-center)**2)/area)
-        return{'area':area, 'center':center, 'width':wid}
+        max = y.max()
+        #calculate FWHM
+        idxs = np.where(y>max/2)[0]
+        xmaxs = x[[idxs.max(),idxs.max()+1]]
+        xmins = x[[idxs.min()-1, idxs.min()]]
+        FWHM = xmaxs.mean()-xmins.mean()
+        return{'area':area, 'center':center, 'width':wid, 'max': max,'FWHM': FWHM}
     
     def setup_fit(self,model_fun,**kwargs):
         """ setup a Model and its fit parameters"""
