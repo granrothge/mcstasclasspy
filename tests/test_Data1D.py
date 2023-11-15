@@ -55,7 +55,7 @@ class TestCase(unittest.TestCase):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
         pkres = data.peakstats()
         for ky in pkres.keys():
-            assert ky in ['area','center','width']
+            assert ky in ['area','center','width','max','FWHM']
         return
     def test_bin(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
@@ -68,6 +68,12 @@ class TestCase(unittest.TestCase):
         cutd = cut1+cut2
         assert np.all(cutd.yvals == cut1.yvals+cut2.yvals)
         return
+    def test_add_const(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
+        cut1 = data.cut('x',0,0.5)
+        cutd = cut1+100
+        
+        return
     def test_sub(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
         cut1 = data.cut('x',0,0.5)
@@ -76,10 +82,23 @@ class TestCase(unittest.TestCase):
         assert np.all(cutd.yvals == cut1.yvals-cut2.yvals)
         return
     
+    def test_sub_const(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_image.dat'))
+        cut1 = data.cut('x',0,0.5)
+        cutd = cut1-100
+        return
+    
+    
     def test_div2(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
         data2 = data / 5
         assert(abs(((data2.yvals-data.yvals/5))<1e-5).all())
+        return
+    def test_div1D(self):
+        data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
+        data2 = data/data
+        return
+
 
     def test_fit1(self):
         
