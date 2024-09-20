@@ -147,7 +147,7 @@ class Data2D(DataMcCode):
         xylabel_dict = {'x': self.xlabel, 'y': self.ylabel}
         xylimits_dict = {'x': self.xylimits[:2], 'y': self.xylimits[2:]}
         zaxes_dict = {'x': 1, 'y': 0}
-        int_dir = np.lib.arraysetops.setxor1d(cutdir, np.array(list(xyvar_dict.keys())))[0]
+        int_dir = np.setxor1d(cutdir, np.array(list(xyvar_dict.keys())))[0]
         #print(int_dir)
         data = Data1D()
         data.component = "cut from {}".format(self.filename)
