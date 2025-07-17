@@ -57,6 +57,16 @@ class TestCase(unittest.TestCase):
         for ky in pkres.keys():
             assert ky in ['area','center','width','max','FWHM']
         return
+    
+    def test_peak_part_area(self):
+        data = mcm.load_mcvine_histogram(os.path.join(datadir,'ienergy.h5'))
+        out = data.peak_part_area(0.95)
+        val_unc = [(98.69,0.05), (102.67,0.05), (602400.8,0.5), (.9504,0.0005)]
+        assert len(out)==4
+        for idx in range(len(out)):
+            assert abs(out[idx]-val_unc[idx][0])<val_unc[idx][1]
+        return
+    
     def test_bin(self):
         data = mcm.load_ascii_monitor(os.path.join(datadir,'Source_spectrum.dat'))
         data.bin(0.2)

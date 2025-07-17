@@ -221,6 +221,23 @@ class Data1D(DataMcCode):
         FWHM = xmaxs.mean()-xmins.mean()
         return{'area':area, 'center':center, 'width':wid, 'max': max,'FWHM': FWHM}
     
+    def peak_part_area(self,areaperc):
+        """
+        determine the x values where the area under the peak around the center is 
+        areaperc of the full area under the peak
+        returns a tuple of the xmin value, the xmax value, the partial area, and the partial area/area.
+        """
+        pkresults = self.peakstats()
+        area = pkresults['area']
+        center = pkresults['center']
+        dx = (self.xvals[1:]-self.xvals[:-1]).mean()
+        cenx = np.where(np.abs(self.xvals-center)<dx)[0]
+        partarea = self.yvals[cenx].sum()
+        while partarea<(area*areaperc):
+            cenx = np.array(range(cenx.min()-1,cenx.max()+2))
+            partarea = self.yvals[cenx].sum()
+        return(self.xvals[cenx.min()],self.xvals[cenx.max()],partarea, partarea/area)
+
     def setup_fit(self,model_fun,**kwargs):
         """ setup a Model and its fit parameters"""
         self.fmodel = lmfit.Model(model_fun)
